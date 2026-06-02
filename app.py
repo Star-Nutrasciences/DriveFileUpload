@@ -89,6 +89,10 @@ def main():
                         st.error("Failed to upload to Google Drive.")
                 except Exception as e:
                     st.error(f"Google Drive Error: {str(e)}")
+                finally:
+                    # Clean up the local file so the server doesn't run out of disk space
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
                 
                 file_details = {
                     "Saved Path": file_path,
