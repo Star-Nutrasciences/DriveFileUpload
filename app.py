@@ -38,8 +38,8 @@ def main():
             elif label == "COA" and not other_info.strip():
                 st.error("Company Name (Additional Info) is required for COA.")
             else:
-                # Format the date as YYMMDD
-                date_str = input_date.strftime("%y%m%d")
+                # Format the date as YYYYMMDD
+                date_str = input_date.strftime("%Y%m%d")
                 
                 # Clean up other_info for filename usage
                 safe_info = "".join(c for c in other_info if c.isalnum() or c in (' ', '-', '_')).strip().replace(" ", "_")
