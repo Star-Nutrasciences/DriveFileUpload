@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import datetime
 from dotenv import load_dotenv
 from drive_utils import get_drive_service, get_or_create_folder, upload_file_to_drive
 
@@ -24,24 +25,45 @@ def main():
         }
         label = st.selectbox("Select a label for the file", options=list(LABEL_TO_FOLDER.keys()))
         
+        # Date input and other info
+        input_date = st.date_input("Select Date")
+        other_info = st.text_input("Additional Info (Enter Company Name for COA)")
+        
         # Submit button
         submit_button = st.form_submit_button(label="Submit")
         
         if submit_button:
             if uploaded_file is None:
                 st.error("Please upload a file.")
-            elif not label.strip():
-                st.error("Please enter a label.")
+            elif label == "COA" and not other_info.strip():
+                st.error("Company Name (Additional Info) is required for COA.")
             else:
-                st.success(f"File '{uploaded_file.name}' successfully uploaded with label: '{label}'.")
+                # Format the date as YYMMDD
+                date_str = input_date.strftime("%y%m%d")
+                
+                # Clean up other_info for filename usage
+                safe_info = "".join(c for c in other_info if c.isalnum() or c in (' ', '-', '_')).strip().replace(" ", "_")
+                
+                # Get the file extension
+                ext = os.path.splitext(uploaded_file.name)[1]
+                
+                # Apply custom naming convention
+                if label == "batch release":
+                    new_name = f"BatchRelease{date_str}"
+                    if safe_info: new_name += f"_{safe_info}"
+                elif label == "pest control logs":
+                    new_name = f"Pestcontrol{date_str}"
+                    if safe_info: new_name += f"_{safe_info}"
+                elif label == "COA":
+                    new_name = f"COA_{safe_info}_{date_str}"
+                
+                file_name = f"{new_name}{ext}"
+                mapped_folder_name = LABEL_TO_FOLDER[label]
                 
                 # Save the uploaded file to the local directory (syncs to OneDrive)
                 save_dir = "uploads"
                 os.makedirs(save_dir, exist_ok=True)
                 
-                # Clean up label for filename usage and construct path
-                mapped_folder_name = LABEL_TO_FOLDER[label]
-                file_name = f"{mapped_folder_name}_{uploaded_file.name}"
                 file_path = os.path.join(save_dir, file_name)
                 
                 # Write file to disk
