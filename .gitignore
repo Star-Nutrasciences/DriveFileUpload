@@ -2,3 +2,4 @@
 FileUpload.egg-info
 .env
 token.json
+credentials.json
