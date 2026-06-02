@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import datetime
+import io
 from dotenv import load_dotenv
 from drive_utils import get_drive_service, get_or_create_folder, upload_file_to_drive
 
@@ -62,41 +63,28 @@ def main():
                 file_name = f"{new_name}{ext}"
                 mapped_folder_name = LABEL_TO_FOLDER[label]
                 
-                # Save the uploaded file to the local directory (syncs to OneDrive)
-                save_dir = "uploads"
-                os.makedirs(save_dir, exist_ok=True)
-                
-                file_path = os.path.join(save_dir, file_name)
-                
-                # Write file to disk
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                
-                st.success(f"File saved locally to `{file_path}`.")
-                
                 # Google Drive Upload
-                st.info("Uploading to Google Drive...")
+                st.info("Uploading directly to Google Drive...")
                 try:
                     BASE_FOLDER_ID = os.getenv("BASE_FOLDER_ID", "14AZi6h0F_Wb4sV70Nexhxl-oaeK8vnrX")
                     
                     service = get_drive_service()
                     folder_id = get_or_create_folder(service, mapped_folder_name, parent_id=BASE_FOLDER_ID)
-                    file_id, web_link = upload_file_to_drive(service, file_path, folder_id, mime_type=uploaded_file.type)
+                    
+                    # Convert Streamlit UploadedFile to an in-memory BytesIO object
+                    file_obj = io.BytesIO(uploaded_file.getvalue())
+                    
+                    file_id, web_link = upload_file_to_drive(service, file_obj, file_name, folder_id, mime_type=uploaded_file.type)
                     
                     if file_id:
-                        st.success(f"Successfully uploaded to Google Drive folder '{mapped_folder_name}'! [View File]({web_link})")
+                        st.success(f"Successfully uploaded '{file_name}' to Google Drive folder '{mapped_folder_name}'! [View File]({web_link})")
                     else:
                         st.error("Failed to upload to Google Drive.")
                 except Exception as e:
                     st.error(f"Google Drive Error: {str(e)}")
-                finally:
-                    # Clean up the local file so the server doesn't run out of disk space
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
                 
                 file_details = {
-                    "Saved Path": file_path,
-                    "Filename": uploaded_file.name,
+                    "Filename": file_name,
                     "FileType": uploaded_file.type,
                     "FileSize": f"{uploaded_file.size / 1024:.2f} KB",
                     "Label": label

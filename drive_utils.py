@@ -3,7 +3,7 @@ import streamlit as st
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaIoBaseUpload
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 
@@ -58,16 +58,15 @@ def get_or_create_folder(service, folder_name, parent_id=None):
         print(f"An error occurred in get_or_create_folder: {err}")
         raise err
 
-def upload_file_to_drive(service, file_path, folder_id, mime_type=None):
-    """Upload a file to a specific Google Drive folder."""
+def upload_file_to_drive(service, file_obj, file_name, folder_id, mime_type=None):
+    """Upload an in-memory file to a specific Google Drive folder."""
     try:
-        file_name = os.path.basename(file_path)
         file_metadata = {
             'name': file_name,
             'parents': [folder_id]
         }
         
-        media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
+        media = MediaIoBaseUpload(file_obj, mimetype=mime_type, resumable=True)
         
         file = service.files().create(body=file_metadata, media_body=media, fields='id, webViewLink').execute()
         
