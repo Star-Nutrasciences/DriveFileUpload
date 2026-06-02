@@ -1,28 +1,28 @@
-import os
-from google.auth.transport.requests import Request
+import streamlit as st
 from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 
-def get_drive_service(token_path='token.json'):
-    """Authenticate and return the Google Drive service object."""
-    creds = None
-    # The file token.json stores the user's access and refresh tokens
-    if os.path.exists(token_path):
-        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-    
-    # If there are no (valid) credentials available, attempt to refresh.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            raise Exception("token.json not found or invalid. Please ensure token.json with valid credentials exists.")
-            
+def get_drive_service():
+    """Authenticate and return the Google Drive service object using OAuth Token from secrets."""
     try:
+        # Load credentials dictionary from Streamlit Secrets
+        token_info = dict(st.secrets["gcp_oauth_token"])
+        creds = Credentials.from_authorized_user_info(token_info, SCOPES)
+        
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                raise Exception("OAuth token is invalid.")
+                
         service = build("drive", "v3", credentials=creds)
         return service
+    except KeyError:
+        raise Exception("OAuth credentials not found in Streamlit secrets. Please configure .streamlit/secrets.toml or Cloud Secrets.")
     except Exception as err:
         print(f"An error occurred initializing Drive service: {err}")
         raise err

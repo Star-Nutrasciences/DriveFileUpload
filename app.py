@@ -1,6 +1,9 @@
 import streamlit as st
 import os
+from dotenv import load_dotenv
 from drive_utils import get_drive_service, get_or_create_folder, upload_file_to_drive
+
+load_dotenv()
 
 def main():
     st.set_page_config(page_title="File Upload with Label", page_icon="📁", layout="centered")
@@ -50,7 +53,7 @@ def main():
                 # Google Drive Upload
                 st.info("Uploading to Google Drive...")
                 try:
-                    BASE_FOLDER_ID = "14AZi6h0F_Wb4sV70Nexhxl-oaeK8vnrX"
+                    BASE_FOLDER_ID = os.getenv("BASE_FOLDER_ID", "14AZi6h0F_Wb4sV70Nexhxl-oaeK8vnrX")
                     
                     service = get_drive_service()
                     folder_id = get_or_create_folder(service, mapped_folder_name, parent_id=BASE_FOLDER_ID)
