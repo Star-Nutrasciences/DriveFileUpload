@@ -27,7 +27,7 @@ def main():
         label = st.selectbox("Select a label for the file", options=list(LABEL_TO_FOLDER.keys()), index=None, placeholder="Choose a label...")
         
         # Date input and other info
-        input_date = st.date_input("Select Date")
+        input_date = st.date_input("Select Date", value=None)
         other_info = st.text_input("Additional Info (Enter Company Name for COA)")
         
         # Submit button
@@ -38,6 +38,8 @@ def main():
                 st.error("Please upload a file.")
             elif not label:
                 st.error("Please select a label.")
+            elif input_date is None:
+                st.error("Please select a date.")
             elif label == "COA" and not other_info.strip():
                 st.error("Company Name (Additional Info) is required for COA.")
             else:
