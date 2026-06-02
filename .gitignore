@@ -1,0 +1,4 @@
+.venv
+FileUpload.egg-info
+.env
+token.json
