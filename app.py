@@ -23,7 +23,7 @@ def main():
             "pest control logs": "Pestcontrol-logs",
             "COA": "COA"
         }
-        label = st.selectbox("Select a label for the file", options=list(LABEL_TO_FOLDER.keys()))
+        label = st.selectbox("Select a label for the file", options=list(LABEL_TO_FOLDER.keys()), index=None, placeholder="Choose a label...")
         
         # Date input and other info
         input_date = st.date_input("Select Date")
@@ -35,6 +35,8 @@ def main():
         if submit_button:
             if uploaded_file is None:
                 st.error("Please upload a file.")
+            elif not label:
+                st.error("Please select a label.")
             elif label == "COA" and not other_info.strip():
                 st.error("Company Name (Additional Info) is required for COA.")
             else:
